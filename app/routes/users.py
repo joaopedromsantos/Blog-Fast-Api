@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from starlette import status
 
-from dependencies.db import get_db
+from dependencies.db import get_session
 from app.models.users import Users
 from app.repositories.jwt_repo import JWTRepo
 from app.repositories.user_repo import UserRepo
@@ -23,7 +23,7 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 @router.post('/signup', status_code=HTTPStatus.CREATED)
 async def signup(
         request: RegisterSchema,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_session)
 ):
     existing_user = UserRepo.find_by_username(db, request.username)
     if existing_user:
@@ -61,7 +61,7 @@ async def signup(
 @router.post('/login', status_code=HTTPStatus.OK)
 async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_session)
 ):
     user = UserRepo.find_by_username(db, form_data.username)
 

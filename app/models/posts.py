@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+
 from config import Base
 
 

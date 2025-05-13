@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
-from dependencies.db import get_db
+from dependencies.db import get_session
 from dependencies.auth import get_current_user_dependency
 from exceptions.http_exceptions import NOT_FOUND_EXCEPTION
 from app.models.posts import Posts
 from app.repositories.posts_repo import PostsRepo
 from app.schemas.base_schema import ResponseSchema
-from app.schemas.posts_schema import InsertPostsSchema, DeletePostsSchema, GetPostsSchema, UpdatePostsSchema
+from app.schemas.posts_schema import InsertPostsSchema, GetPostsSchema, UpdatePostsSchema
 
 router = APIRouter(
     tags=['Posts']
@@ -20,7 +20,7 @@ router = APIRouter(
 @router.post("/posts", status_code=HTTPStatus.CREATED)
 def create_post(
         request: InsertPostsSchema,
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_session),
         current_user=Depends(get_current_user_dependency)
 ):
     new_post = Posts(
@@ -36,6 +36,7 @@ def create_post(
         status="Success",
         message="Post created successfully",
         result={
+            "id": new_post.id,
             "title": new_post.title,
             "author_id": new_post.author_id,
             "user": current_user
@@ -43,13 +44,13 @@ def create_post(
     )
 
 
-@router.delete("/posts", status_code=HTTPStatus.NO_CONTENT)
+@router.delete("/posts/{post_id}", status_code=HTTPStatus.NO_CONTENT)
 def delete_post(
-    request: DeletePostsSchema,
-    db: Session = Depends(get_db),
+    post_id: int,
+    db: Session = Depends(get_session),
     current_user=Depends(get_current_user_dependency)
 ):
-    post = PostsRepo.find_by_id(db, request.id)
+    post = PostsRepo.find_by_id(db, post_id)
     if post is None:
         raise NOT_FOUND_EXCEPTION
 
@@ -62,10 +63,11 @@ def delete_post(
     )
 
 
+
 @router.get("/posts", status_code=HTTPStatus.OK)
 def get_posts(
     post_id: int = None,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     current_user=Depends(get_current_user_dependency),
     skip: int = 0,
     limit: int = 10,
@@ -90,13 +92,14 @@ def get_posts(
         )
 
 
-@router.put("/posts", status_code=HTTPStatus.OK)
+@router.put("/posts/{post_id}", status_code=HTTPStatus.OK)
 def update_posts(
+        post_id: int,
         request: UpdatePostsSchema,
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_session),
         current_user=Depends(get_current_user_dependency)
 ):
-    post = PostsRepo.find_by_id(db, request.id)
+    post = PostsRepo.find_by_id(db, post_id)
     if not post:
         raise NOT_FOUND_EXCEPTION
 

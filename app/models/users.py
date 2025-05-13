@@ -2,6 +2,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, Enum, DateTime
+
 from config import Base
 
 

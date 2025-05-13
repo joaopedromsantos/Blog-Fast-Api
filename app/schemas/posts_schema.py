@@ -7,27 +7,22 @@ from pydantic import BaseModel, HttpUrl
 class InsertPostsSchema(BaseModel):
     title: str
     author_id: int
-    cover_image_url: str = None
+    cover_image_url: Optional[str] = None
     content: str
 
 
 class UpdatePostsSchema(BaseModel):
-    id: int
-    title: str = None
-    author_id: int = None
-    cover_image_url: str = None
-    content: str = None
-
-
-class DeletePostsSchema(BaseModel):
-    id: int
+    title: Optional[str] = None
+    author_id: Optional[int] = None
+    cover_image_url: Optional[str] = None
+    content: Optional[str] = None
 
 
 class GetPostsSchema(BaseModel):
     id: int
     title: str
     author_id: int
-    cover_image_url: str
+    cover_image_url: Optional[str] = None
     content: str
     create_date: datetime
     update_date: datetime
