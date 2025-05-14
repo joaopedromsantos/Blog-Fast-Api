@@ -1,6 +1,7 @@
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
-from app.schemas.posts_schema import UpdatePostsSchema
 from exceptions.http_exceptions import NOT_FOUND_EXCEPTION
 from app.models.posts import Posts
 
@@ -34,11 +35,22 @@ class PostsRepo:
         return post
 
     @staticmethod
-    def update(db: Session, post: Posts, request: UpdatePostsSchema):
-        post.title = request.title
-        post.content = request.content
-        post.cover_image_url = request.cover_image_url
-        post.author_id = request.author_id
+    def update(
+            db: Session,
+            post: Posts,
+            title: Optional[str] = None,
+            content: Optional[str] = None,
+            cover_image_url: Optional[str] = None,
+            author_id: Optional[int] = None,
+    ):
+        if title:
+            post.title = title
+        if content:
+            post.content = content
+        if cover_image_url:
+            post.cover_image_url = cover_image_url
+        if author_id:
+            post.author_id = author_id
 
         db.commit()
         db.refresh(post)

@@ -1,80 +1,62 @@
-def test_create_post(client, token):
-    headers = {"Authorization": f"Bearer {token}"}
+import pytest
+
+
+def get_headers(token):
+    return {"Authorization": f"Bearer {token}"}
+
+
+def create_post(client, token, title="Post Padrão", content="Conteúdo padrão", author_id=0):
+    headers = get_headers(token)
     post_data = {
-          "title": "Teste de POST",
-          "author_id": 0,
-          "cover_image_url": "https://th.bing.com/th/id/OIP.1CbHBsd3Jr28rK54t_Mr2gHaD8?cb=iwp2&rs=1&pid=ImgDetMain",
-          "content": "ISSO É APENAS TESTE"
-        }
-
-    response = client.post("/posts/", json=post_data, headers=headers)
-
+        "title": title,
+        "author_id": author_id,
+        "content": content,
+    }
+    response = client.post("/posts/", data=post_data, files={}, headers=headers)
     assert response.status_code == 201
+    return response.json()['result']
 
-    data = response.json()
-    assert data['result']['title'] == 'Teste de POST'
+
+def test_create_post(client, token):
+    post = create_post(client, token, title="Teste de POST", content="ISSO É APENAS TESTE")
+    assert post["title"] == "Teste de POST"
 
 
 def test_get_post(client, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    post_data = {
-        "title": "Post para GET",
-        "author_id": 0,
-        "cover_image_url": "https://example.com/image.png",
-        "content": "Conteúdo de teste para GET"
-    }
-    create_response = client.post("/posts/", json=post_data, headers=headers)
-    assert create_response.status_code == 201
+    post = create_post(client, token, title="Post para GET", content="Conteúdo de teste para GET")
 
-    get_response = client.get("/posts?post_id=0", headers=headers)
-    assert get_response.status_code == 200
+    response = client.get(f"/posts?post_id={post['id']}", headers=get_headers(token))
+    assert response.status_code == 200
 
-    data = get_response.json()
-    assert data['result'][0]['title'] == "Post para GET"
+    data = response.json()
+    print(data)
+    assert data['result']['title'] == "Post para GET"
 
 
 def test_delete_post(client, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    post_data = {
-        "title": "Post para DELETE",
-        "author_id": 0,
-        "cover_image_url": "https://example.com/image.png",
-        "content": "Conteúdo de teste para DELETE"
-    }
+    post = create_post(client, token, title="Post para DELETE", content="Conteúdo para DELETE")
 
-    create_response = client.post("/posts/", json=post_data, headers=headers)
-    assert create_response.status_code == 201
-    post_id = create_response.json()['result']['id']
-
-    delete_response = client.delete(f"/posts/{post_id}", headers=headers)
+    delete_response = client.delete(f"/posts/{post['id']}", headers=get_headers(token))
     assert delete_response.status_code == 204
 
-    get_response = client.get(f"/posts?post_id={post_id}", headers=headers)
+    get_response = client.get(f"/posts?post_id={post['id']}", headers=get_headers(token))
     assert get_response.status_code == 404
 
 
 def test_update_post(client, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    post_data = {
-        "title": "Post original",
-        "author_id": 0,
-        "cover_image_url": "https://example.com/original.png",
-        "content": "Conteúdo original"
-    }
+    post = create_post(client, token, title="Post original", content="Conteúdo original")
 
-    create_response = client.post("/posts/", json=post_data, headers=headers)
-    assert create_response.status_code == 201
-
-    post_id = create_response.json()['result']['id']
     update_data = {
         "title": "Post atualizado",
-        "cover_image_url": "https://example.com/atualizado.png",
         "content": "Novo conteúdo editado"
     }
 
-    update_response = client.put(f"/posts/{post_id}", json=update_data, headers=headers)
+    update_response = client.put(
+        f"/posts/{post['id']}",
+        data=update_data,
+        files={},  # mantém multipart/form-data válido
+        headers=get_headers(token)
+    )
     assert update_response.status_code == 200
-    data = update_response.json()
-
-    assert data['result']['title'] == "Post atualizado"
-
+    updated = update_response.json()["result"]
+    assert updated["title"] == "Post atualizado"
