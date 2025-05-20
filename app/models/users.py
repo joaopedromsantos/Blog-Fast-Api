@@ -26,5 +26,7 @@ class Users(Base):
     last_name = Column(String(20), nullable=False)
     gender = Column(Enum(GenderEnum, name="gender_enum"), nullable=False)
 
+    role = Column(String, default="user")
+
     create_date = Column(DateTime, default=datetime.now)
     update_date = Column(DateTime, default=datetime.now, onupdate=datetime.now)

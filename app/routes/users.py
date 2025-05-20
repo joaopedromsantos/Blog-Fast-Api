@@ -77,7 +77,7 @@ async def login(
             detail="Invalid Password"
         )
 
-    token = JWTRepo.generate_token({'sub': user.username})
+    token = JWTRepo.generate_token(user)
 
     return ResponseLoginSchema(access_token=token, token_type='bearer')
 

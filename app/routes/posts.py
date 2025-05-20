@@ -5,10 +5,11 @@ from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.models.users import Users
 from app.utils import s3_utils
 from dependencies.db import get_session
-from dependencies.auth import get_current_user_dependency
-from exceptions.http_exceptions import NOT_FOUND_EXCEPTION
+from dependencies.auth import get_current_user_dependency, get_admin_user_dependency
+from exceptions.http_exceptions import NOT_FOUND_EXCEPTION, FORBIDDEN_EXCEPTION
 from app.models.posts import Posts
 from app.repositories.posts_repo import PostsRepo
 from app.schemas.base_schema import ResponseSchema
@@ -47,8 +48,7 @@ async def create_post(
         result={
             "id": new_post.id,
             "title": new_post.title,
-            "author_id": new_post.author_id,
-            "user": current_user
+            "author_id": new_post.author_id
         }
     )
 
@@ -57,11 +57,14 @@ async def create_post(
 def delete_post(
     post_id: int,
     db: Session = Depends(get_session),
-    current_user=Depends(get_current_user_dependency)
+    current_user: Users = Depends(get_current_user_dependency)
 ):
     post = PostsRepo.find_by_id(db, post_id)
     if post is None:
         raise NOT_FOUND_EXCEPTION
+
+    if current_user.role != "admin" and post.author_id != current_user.id:
+        raise FORBIDDEN_EXCEPTION
 
     PostsRepo.delete(db, post)
     if post.cover_image_url:
@@ -72,7 +75,6 @@ def delete_post(
         status="Success",
         message="Post deleted successfully"
     )
-
 
 
 @router.get("/posts", status_code=HTTPStatus.OK)
@@ -141,8 +143,7 @@ def update_posts(
         message="Post updated successfully",
         result={
             "title": updated_post.title,
-            "author_id": updated_post.author_id,
-            "user": current_user
+            "author_id": updated_post.author_id
         }
     )
 

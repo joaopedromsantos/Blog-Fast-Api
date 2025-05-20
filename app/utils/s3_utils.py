@@ -1,7 +1,6 @@
 import boto3
 from uuid import uuid4
 from config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, BUCKET_NAME, REGION_NAME
-from exceptions.http_exceptions import S3_DELETE_FAILED_EXCEPTION
 
 s3 = boto3.client(
     "s3",
@@ -24,4 +23,4 @@ def delete_s3_file(file_url):
     try:
         s3.delete_object(Bucket=BUCKET_NAME, Key=file_key)
     except Exception:
-        raise S3_DELETE_FAILED_EXCEPTION
+        pass

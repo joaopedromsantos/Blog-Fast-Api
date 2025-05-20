@@ -5,7 +5,4 @@ NOT_FOUND_EXCEPTION = HTTPException(
     detail="Not found"
 )
 
-S3_DELETE_FAILED_EXCEPTION = HTTPException(
-    status_code=status.HTTP_207_MULTI_STATUS,
-    detail="Post deleted, but failed to delete image from S3"
-)
+FORBIDDEN_EXCEPTION = HTTPException(status_code=403, detail="You do not have permission")

@@ -5,7 +5,7 @@ def get_headers(token):
     return {"Authorization": f"Bearer {token}"}
 
 
-def create_post(client, token, title="Post Padrão", content="Conteúdo padrão", author_id=0):
+def create_post(client, token, title="Post Padrão", content="Conteúdo padrão", author_id=1):
     headers = get_headers(token)
     post_data = {
         "title": title,
@@ -29,7 +29,6 @@ def test_get_post(client, token):
     assert response.status_code == 200
 
     data = response.json()
-    print(data)
     assert data['result']['title'] == "Post para GET"
 
 
@@ -54,7 +53,7 @@ def test_update_post(client, token):
     update_response = client.put(
         f"/posts/{post['id']}",
         data=update_data,
-        files={},  # mantém multipart/form-data válido
+        files={},
         headers=get_headers(token)
     )
     assert update_response.status_code == 200
