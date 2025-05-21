@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from starlette import status
 
+from dependencies.auth import get_admin_user_dependency
 from dependencies.db import get_session
 from app.models.users import Users
 from app.repositories.jwt_repo import JWTRepo
@@ -79,5 +80,33 @@ async def login(
 
     token = JWTRepo.generate_token(user)
 
-    return ResponseLoginSchema(access_token=token, token_type='bearer')
+    return ResponseLoginSchema(
+        access_token=token,
+        token_type='bearer',
+        username=user.username,
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name
+    )
 
+
+@router.patch("/{user_id}/promote")
+def promote_user_to_admin(
+        user_id: int,
+        db: Session = Depends(get_session),
+        current_user: Users = Depends(get_admin_user_dependency)
+):
+    user = UserRepo.find_by_id(db, user_id)
+
+    user_promoted = UserRepo.promote(db, user)
+
+    return ResponseSchema(
+        code=status.HTTP_200_OK,
+        status="Success",
+        message="User promoted successfully",
+        result={
+            "user_id": user_promoted.id,
+            "user": user_promoted.username,
+            "role": user_promoted.role
+        }
+    )

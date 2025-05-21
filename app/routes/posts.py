@@ -8,7 +8,7 @@ from starlette import status
 from app.models.users import Users
 from app.utils import s3_utils
 from dependencies.db import get_session
-from dependencies.auth import get_current_user_dependency, get_admin_user_dependency
+from dependencies.auth import get_current_user_dependency
 from exceptions.http_exceptions import NOT_FOUND_EXCEPTION, FORBIDDEN_EXCEPTION
 from app.models.posts import Posts
 from app.repositories.posts_repo import PostsRepo
@@ -23,7 +23,6 @@ router = APIRouter(
 @router.post("/posts", status_code=HTTPStatus.CREATED)
 async def create_post(
     title: str = Form(...),
-    author_id: int = Form(...),
     content: str = Form(...),
     cover_image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_session),
@@ -35,7 +34,7 @@ async def create_post(
 
     new_post = Posts(
         title=title,
-        author_id=author_id,
+        author_id=current_user.id,
         cover_image_url=image_url,
         content=content
     )
@@ -109,7 +108,6 @@ def get_posts(
 def update_posts(
         post_id: int,
         title: Optional[str] = Form(None),
-        author_id: Optional[int] = Form(None),
         content: Optional[str] = Form(None),
         cover_image: Optional[UploadFile] = File(None),
         db: Session = Depends(get_session),
@@ -130,7 +128,7 @@ def update_posts(
         post=post,
         title=title,
         content=content,
-        author_id=author_id,
+        author_id=current_user.id,
         cover_image_url=image_url
     )
 

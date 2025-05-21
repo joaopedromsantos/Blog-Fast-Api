@@ -17,4 +17,9 @@ class RegisterSchema(BaseModel):
 class ResponseLoginSchema(BaseModel):
     access_token: str
     token_type: str
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+
 

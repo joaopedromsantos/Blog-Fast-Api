@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.users import Users
+from exceptions.http_exceptions import NOT_FOUND_EXCEPTION
 
 
 class UserRepo:
@@ -17,6 +18,18 @@ class UserRepo:
     def find_by_email(db: Session, email: str):
         return db.query(Users).filter(Users.email == email).first()
 
+    @staticmethod
+    def find_by_id(db: Session, user_id: int):
+        user = db.query(Users).filter(Users.id == user_id).first()
+        if not user:
+            raise NOT_FOUND_EXCEPTION
+        return user
 
+    @staticmethod
+    def promote(db: Session, user: Users):
+        user.role = "admin"
+        db.commit()
+        db.refresh(user)
+        return user
 
 
